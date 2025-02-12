@@ -1,4 +1,3 @@
-
 local carry = {
 	InProgress = false,
 	targetSrc = -1,
@@ -70,6 +69,20 @@ RegisterCommand("carry",function(source, args)
 				TriggerServerEvent("CarryPeople:sync",targetSrc)
 				ensureAnimDict(carry.personCarrying.animDict)
 				carry.type = "carrying"
+				CreateThread(function()
+					while carry.InProgress do
+						if carry.type == "beingcarried" then
+							if not IsEntityPlayingAnim(PlayerPedId(), carry.personCarried.animDict, carry.personCarried.anim, 3) then
+								TaskPlayAnim(PlayerPedId(), carry.personCarried.animDict, carry.personCarried.anim, 8.0, -8.0, 100000, carry.personCarried.flag, 0, false, false, false)
+							end
+						elseif carry.type == "carrying" then
+							if not IsEntityPlayingAnim(PlayerPedId(), carry.personCarrying.animDict, carry.personCarrying.anim, 3) then
+								TaskPlayAnim(PlayerPedId(), carry.personCarrying.animDict, carry.personCarrying.anim, 8.0, -8.0, 100000, carry.personCarrying.flag, 0, false, false, false)
+							end
+						end
+						Wait(0)
+					end
+				end)
 			else
 				drawNativeNotification("~r~No one nearby to carry!")
 			end
@@ -101,19 +114,3 @@ AddEventHandler("CarryPeople:cl_stop", function()
 	DetachEntity(PlayerPedId(), true, false)
 end)
 
-Citizen.CreateThread(function()
-	while true do
-		if carry.InProgress then
-			if carry.type == "beingcarried" then
-				if not IsEntityPlayingAnim(PlayerPedId(), carry.personCarried.animDict, carry.personCarried.anim, 3) then
-					TaskPlayAnim(PlayerPedId(), carry.personCarried.animDict, carry.personCarried.anim, 8.0, -8.0, 100000, carry.personCarried.flag, 0, false, false, false)
-				end
-			elseif carry.type == "carrying" then
-				if not IsEntityPlayingAnim(PlayerPedId(), carry.personCarrying.animDict, carry.personCarrying.anim, 3) then
-					TaskPlayAnim(PlayerPedId(), carry.personCarrying.animDict, carry.personCarrying.anim, 8.0, -8.0, 100000, carry.personCarrying.flag, 0, false, false, false)
-				end
-			end
-		end
-		Wait(0)
-	end
-end)
